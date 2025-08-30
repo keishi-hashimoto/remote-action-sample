@@ -3,6 +3,10 @@ run-name: Test
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      message:
+        description: Message for the pull request
+        required: true
 defaults:
   run:
     shell: bash
