@@ -36,9 +36,13 @@ jobs:
         with:
           message: ${MESSAGE}
       - id: verify
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -x
           test "$(gh pr view "${{ steps.exercise.outputs.branch }}" --json title -q .title)" = "${MESSAGE}"
       - id: teardown
         if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: gh pr close "${{ steps.exercise.outputs.branch }}" -d || true
