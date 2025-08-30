@@ -1,0 +1,48 @@
+name: Create PR
+description: Create Pull Request with spcecified message
+
+inputs:
+  message:
+    description: message of pull request
+    required: true
+
+outputs:
+  branch:
+    description: branch name where pull request is created
+    value: ${{ steps.create-pr.outputs.branch }}
+
+runs:
+  using: composite
+  env:
+    BRANCH: auto/${{ github.run_id }}/${{ github.run_attempt }}
+    MESSAGE: ${{ inputs.message }}
+  steps:
+    - id: configure_git
+      shell: bash
+      env:
+        USERNAME: "github-actions[bot]"
+        EMAIL: "48198282+github-actions[bot]@users.noreply.github.com"
+      run: |
+        git config --global user.email "${EMAIL}"
+        git config --global user.name "${USERNAME}"
+    - id: create-branch
+      shell: bash
+      run: git switch -c "${BRANCH}"
+    - id: add-files
+      shell: bash
+      run: git add .
+    - id: add-commit
+      shell: bash
+      run: git commit -m "${MESSAGE}"
+    - id: push
+      shell: bash
+      run: git push origin "${BRANCH}"
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+    - id: create-pr
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        gh pr create --title "${{ inputs.message }}" --body "${{ inputs.message }}"
+        echo "branch=${BRANCH}" >> ${GITHUB_OUTPUT}

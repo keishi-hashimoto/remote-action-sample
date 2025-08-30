@@ -1,0 +1,40 @@
+name: Test of this action
+run-name: Test
+on:
+  pull_request:
+  workflow_dispatch:
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      MESSAGE: "Create a test PR"
+    steps:
+      - uses: actions/checkout@v5
+      - id: setup
+        env:
+          ARTIFACT_FILE: "dummy.txt"
+        run: echo "this is a test artifact" >> "${ARTIFACT_FILE}"
+      - id: exercise
+        uses: ./action.yaml
+        with:
+          message: ${MESSAGE}
+      - id: verify
+        run: |
+          set -x
+          test "$(gh pr view "${{ steps.exercise.outputs.branch }}" --json title -q .title)" = "${MESSAGE}"
+      - id: teardown
+        if: always()
+        run: gh pr close "${{ github.head_ref }}" -d || true
