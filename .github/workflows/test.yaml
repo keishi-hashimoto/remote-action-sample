@@ -3,6 +3,10 @@ run-name: Test
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      message:
+        description: Message for the pull request
+        required: true
 defaults:
   run:
     shell: bash
@@ -28,7 +32,7 @@ jobs:
           ARTIFACT_FILE: "dummy.txt"
         run: echo "this is a test artifact" >> "${ARTIFACT_FILE}"
       - id: exercise
-        uses: ./action.yaml
+        uses: ./
         with:
           message: ${MESSAGE}
       - id: verify
@@ -37,4 +41,4 @@ jobs:
           test "$(gh pr view "${{ steps.exercise.outputs.branch }}" --json title -q .title)" = "${MESSAGE}"
       - id: teardown
         if: always()
-        run: gh pr close "${{ github.head_ref }}" -d || true
+        run: gh pr close "${{ steps.exercise.outputs.branch }}" -d || true
