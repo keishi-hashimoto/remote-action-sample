@@ -28,7 +28,7 @@ jobs:
           ARTIFACT_FILE: "dummy.txt"
         run: echo "this is a test artifact" >> "${ARTIFACT_FILE}"
       - id: exercise
-        uses: ./action.yaml
+        uses: ./
         with:
           message: ${MESSAGE}
       - id: verify
