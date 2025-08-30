@@ -13,9 +13,6 @@ outputs:
 
 runs:
   using: composite
-  env:
-    BRANCH: auto/${{ github.run_id }}/${{ github.run_attempt }}
-    MESSAGE: ${{ inputs.message }}
   steps:
     - id: configure_git
       shell: bash
@@ -27,22 +24,26 @@ runs:
         git config --global user.name "${USERNAME}"
     - id: create-branch
       shell: bash
-      run: git switch -c "${BRANCH}"
+      env:
+        BRANCH: auto/${{ github.run_id }}/${{ github.run_attempt }}
+      run: git switch -c "${{ env.BRANCH }}"
     - id: add-files
       shell: bash
       run: git add .
     - id: add-commit
       shell: bash
-      run: git commit -m "${MESSAGE}"
+      run: git commit -m "${{ inputs.message }}"
     - id: push
       shell: bash
-      run: git push origin "${BRANCH}"
+      run: git push origin "${{ env.BRANCH }}"
       env:
         GITHUB_TOKEN: ${{ github.token }}
+        BRANCH: auto/${{ github.run_id }}/${{ github.run_attempt }}
     - id: create-pr
       shell: bash
       env:
         GITHUB_TOKEN: ${{ github.token }}
+        BRANCH: auto/${{ github.run_id }}/${{ github.run_attempt }}
       run: |
         gh pr create --title "${{ inputs.message }}" --body "${{ inputs.message }}"
         echo "branch=${BRANCH}" >> ${GITHUB_OUTPUT}
